@@ -1,0 +1,39 @@
+{
+  "name": "my-react-app",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview",
+    "start:json-server": "json-server --watch src/assets/db.json --port 3001 --middlewares ./node_modules/json-server-auth/middlewares.js",
+    "json-server": "json-server --watch src/assets/db.json --port 3001"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "styled-components": "^6.1.15",
+    "prop-types": "^15.8.1",
+    "json-server": "^0.17.4",
+    "json-server-auth": "^2.1.0",
+    "axios": "^1.8.2",
+    "react-router-dom": "^7.3.0",
+    "redux": "^5.0.1",
+    "react-redux": "^9.2.0"
+  },
+  "devDependencies": {
+    "vite": "^2.0.0",
+    "eslint": "^7.32.0",
+    "eslint-plugin-react": "^7.24.0",
+    "eslint-plugin-react-hooks": "^4.2.0",
+    "eslint-plugin-jsx-a11y": "^6.4.1",
+    "eslint-config-airbnb": "^18.2.1",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.23.4",
+    "prettier": "^2.3.2",
+    "@vitejs/plugin-react": "^1.0.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

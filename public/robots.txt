@@ -1,0 +1,11 @@
+# Bloquear todos los rastreadores de acceder a cualquier parte del sitio
+User-agent: *
+Disallow: /
+
+# Permitir todos los rastreadores acceder a la carpeta /public
+User-agent: *
+Allow: /public/
+
+# Bloquear un rastreador específico de acceder a la carpeta /private
+User-agent: BadBot
+Disallow: /private/
