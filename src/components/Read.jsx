@@ -4,6 +4,10 @@ import styled from 'styled-components';
 import { fetchRecords, deleteRecord } from '../utils/api';
 import { Button } from './common/FormComponents';
 
+/**
+ * Estilos para el componente de listado de registros
+ */
+
 const PageContainer = styled.div`
     padding: 20px;
     max-width: 900px;
@@ -84,22 +88,29 @@ const SearchBox = styled.input`
     font-size: 0.9rem;
 `;
 
+/**
+ * Componente que muestra el listado de todos los registros
+ * Incluye funcionalidades de búsqueda, filtrado y acciones CRUD
+ */
 const Read = () => {
-    const [records, setRecords] = useState([]);
-    const [filteredRecords, setFilteredRecords] = useState([]);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const navigate = useNavigate();
+    // Estados para gestionar los datos y la interfaz
+    const [records, setRecords] = useState([]);           // Todos los registros originales
+    const [filteredRecords, setFilteredRecords] = useState([]);  // Registros filtrados por búsqueda
+    const [searchTerm, setSearchTerm] = useState('');     // Término de búsqueda
+    const [loading, setLoading] = useState(true);         // Estado de carga
+    const [error, setError] = useState(null);             // Posibles errores
+    const navigate = useNavigate();                       // Hook de navegación
 
-    // Cargar registros
+    /**
+     * Efecto para cargar los registros al montar el componente
+     */
     useEffect(() => {
         const loadRecords = async () => {
             setLoading(true);
             try {
                 const data = await fetchRecords();
                 setRecords(data);
-                setFilteredRecords(data);
+                setFilteredRecords(data); // Inicialmente mostrar todos los registros
             } catch (err) {
                 setError(err.message);
                 window.notifications.error('Error al cargar los registros');
@@ -111,7 +122,10 @@ const Read = () => {
         loadRecords();
     }, []);
 
-    // Filtrar registros basados en el término de búsqueda
+    /**
+     * Efecto para filtrar registros cuando cambia el término de búsqueda
+     * Busca coincidencias en título y descripción
+     */
     useEffect(() => {
         if (searchTerm.trim() === '') {
             setFilteredRecords(records);
@@ -125,10 +139,18 @@ const Read = () => {
         setFilteredRecords(filtered);
     }, [searchTerm, records]);
 
+    /**
+     * Navega a la página de edición con el ID del registro
+     * @param {string|number} id - ID del registro a editar
+     */
     const handleEdit = (id) => {
         navigate(`/update/${id}`);
     };
 
+    /**
+     * Elimina un registro previa confirmación
+     * @param {string|number} id - ID del registro a eliminar
+     */
     const handleDelete = async (id) => {
         if (!window.confirm('¿Está seguro de que desea eliminar este registro?')) {
             return;
@@ -136,6 +158,7 @@ const Read = () => {
 
         try {
             await deleteRecord(id);
+            // Actualiza el estado local para reflejar la eliminación
             setRecords(records.filter(record => record.id !== id));
             window.notifications.success('Registro eliminado correctamente');
         } catch (error) {
@@ -143,6 +166,9 @@ const Read = () => {
         }
     };
 
+    /**
+     * Navega a la página de creación de registros
+     */
     const handleCreateNew = () => {
         navigate('/create');
     };
@@ -163,6 +189,7 @@ const Read = () => {
 
     return (
         <PageContainer>
+            {/* Cabecera con título y botón de creación */}
             <PageHeader>
                 <Title>Mis Registros</Title>
                 <Button onClick={handleCreateNew}>
@@ -170,6 +197,7 @@ const Read = () => {
                 </Button>
             </PageHeader>
 
+            {/* Buscador de registros */}
             <SearchBox
                 type="text"
                 placeholder="Buscar registros..."

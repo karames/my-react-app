@@ -49,11 +49,14 @@ const Delete = ({
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
+    /**
+     * Maneja el proceso de eliminación de un registro
+     * Incluye confirmación, llamada a API, notificación y callback
+     */
     const handleDelete = async () => {
-        // Reiniciar el error
         setError('');
 
-        // Si se requiere confirmación, mostrar diálogo
+        // Confirmar antes de eliminar si está habilitada la confirmación
         if (confirmDelete && !window.confirm(confirmMessage)) {
             return;
         }
@@ -62,12 +65,12 @@ const Delete = ({
         try {
             await deleteRecord(id);
 
-            // Notificar el éxito
+            // Mostrar notificación de éxito
             if (window.notifications) {
                 window.notifications.success('Registro eliminado correctamente');
             }
 
-            // Ejecutar callback de eliminación
+            // Ejecutar callback proporcionado por el componente padre
             if (onDelete) {
                 onDelete(id);
             }
@@ -75,7 +78,7 @@ const Delete = ({
             const errorMessage = err.message || 'Error al eliminar el registro';
             setError(errorMessage);
 
-            // Mostrar notificación de error si está disponible
+
             if (window.notifications) {
                 window.notifications.error(errorMessage);
             }
@@ -86,6 +89,7 @@ const Delete = ({
 
     return (
         <DeleteContainer>
+            {/* Botón para iniciar el proceso de eliminación */}
             <DeleteButton
                 onClick={handleDelete}
                 disabled={loading}

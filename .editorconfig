@@ -40,6 +40,7 @@ quote_type = single           # Usar comillas simples para strings
 [*.{md,mdx}]
 trim_trailing_whitespace = false  # Preservar espacios en blanco para Markdown
 max_line_length = off             # Sin límite de longitud para documentación
+indent_size = 2
 
 ###############################
 # Markup y templates          #

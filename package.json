@@ -33,11 +33,15 @@
         "preview": "vite preview",
         "json-server": "npx json-server-auth --watch src/assets/db.json --port 3001",
         "server": "node src/assets/server.js",
-        "start": "npm run server & npm run dev",
+        "start": "concurrently \"npm run server\" \"npm run dev\"",
+        "start:server": "npm run server",
+        "start:client": "npm run dev",
         "lint": "eslint src --ext .js,.jsx",
         "lint:fix": "eslint src --ext .js,.jsx --fix",
         "format": "prettier --write \"src/**/*.{js,jsx}\"",
-        "clean": "rimraf dist"
+        "clean": "rimraf dist",
+        "prebuild": "npm run clean",
+        "postinstall": "echo \"✅ Instalación completada. Para iniciar la aplicación ejecuta 'npm start'\""
     },
     "dependencies": {
         "axios": "^1.8.2",
@@ -54,6 +58,7 @@
     },
     "devDependencies": {
         "@vitejs/plugin-react": "^4.5.2",
+        "concurrently": "^9.1.2",
         "eslint": "^7.32.0",
         "eslint-config-airbnb": "^18.2.1",
         "eslint-config-prettier": "^8.3.0",

@@ -1,13 +1,19 @@
 import axios from 'axios';
 
-// Configuración centralizada
+/**
+ * Configuración centralizada de la API
+ * Contiene URL base, clave de token y timeout por defecto
+ */
 const API_CONFIG = {
     BASE_URL: 'http://localhost:3001',
     TOKEN_KEY: 'token',
     TIMEOUT: 10000, // 10 segundos
 };
 
-// Creación de la instancia de axios con configuración mejorada
+/**
+ * Instancia de axios pre-configurada para todas las peticiones API
+ * @type {import('axios').AxiosInstance}
+ */
 export const api = axios.create({
     baseURL: API_CONFIG.BASE_URL,
     headers: {
@@ -16,7 +22,9 @@ export const api = axios.create({
     timeout: API_CONFIG.TIMEOUT,
 });
 
-// Interceptor para añadir el token JWT si existe
+/**
+ * Interceptor de solicitudes: añade token JWT a los headers si existe en localStorage
+ */
 api.interceptors.request.use(
     config => {
         const token = localStorage.getItem(API_CONFIG.TOKEN_KEY);
@@ -30,13 +38,16 @@ api.interceptors.request.use(
     }
 );
 
-// Interceptor para manejar respuestas y errores
+/**
+ * Interceptor de respuestas: maneja errores 401 (token inválido)
+ * Emite evento 'auth:unauthorized' para manejo centralizado en componentes
+ */
 api.interceptors.response.use(
     response => {
         return response;
     },
     error => {
-        // Si el token expiró o es inválido (401)
+        // Manejo específico para errores de autenticación (401)
         if (error.response && error.response.status === 401) {
             // Solo eliminamos el token del localStorage
             localStorage.removeItem(API_CONFIG.TOKEN_KEY);
@@ -59,9 +70,13 @@ api.interceptors.response.use(
 
 /**
  * Funciones CRUD mejoradas con manejo de errores consistente
+ * Cada función incluye gestión de errores centralizada mediante handleApiError
  */
 
-// Obtener todos los registros
+/**
+ * Obtiene todos los registros de la API
+ * @returns {Promise<Array>} Array con los registros obtenidos
+ */
 export const fetchRecords = async () => {
     try {
         const response = await api.get('/records');
@@ -72,7 +87,11 @@ export const fetchRecords = async () => {
     }
 };
 
-// Crear un nuevo registro
+/**
+ * Crea un nuevo registro en la API
+ * @param {Object} data - Datos del registro a crear
+ * @returns {Promise<Object>} El registro creado con su ID
+ */
 export const createRecord = async (data) => {
     try {
         const response = await api.post('/records', data);
@@ -83,7 +102,12 @@ export const createRecord = async (data) => {
     }
 };
 
-// Actualizar un registro existente
+/**
+ * Actualiza un registro existente
+ * @param {number|string} id - ID del registro a actualizar
+ * @param {Object} data - Nuevos datos del registro
+ * @returns {Promise<Object>} El registro actualizado
+ */
 export const updateRecord = async (id, data) => {
     try {
         const response = await api.put(`/records/${id}`, data);
@@ -94,7 +118,11 @@ export const updateRecord = async (id, data) => {
     }
 };
 
-// Eliminar un registro
+/**
+ * Elimina un registro por su ID
+ * @param {number|string} id - ID del registro a eliminar
+ * @returns {Promise<Object>} Respuesta de confirmación
+ */
 export const deleteRecord = async (id) => {
     try {
         const response = await api.delete(`/records/${id}`);
@@ -105,7 +133,12 @@ export const deleteRecord = async (id) => {
     }
 };
 
-// Iniciar sesión y obtener token JWT
+/**
+ * Inicia sesión y obtiene token JWT
+ * @param {string} email - Correo electrónico del usuario
+ * @param {string} password - Contraseña del usuario
+ * @returns {Promise<Object>} Datos del usuario y token JWT
+ */
 export const login = async (email, password) => {
     try {
         const response = await api.post('/login', { email, password });
@@ -116,11 +149,13 @@ export const login = async (email, password) => {
     }
 };
 
-// Obtener datos del perfil del usuario
+/**
+ * Obtiene los datos del perfil del usuario autenticado
+ * @returns {Promise<Object>} Datos del perfil del usuario
+ */
 export const fetchUserProfile = async () => {
     try {
-        // En un caso real, usarías un endpoint específico como /users/me
-        // Simulamos que hay un endpoint /profile
+        // Endpoint para obtener datos del usuario autenticado
         const response = await api.get('/profile');
         return response.data;
     } catch (error) {
@@ -129,13 +164,17 @@ export const fetchUserProfile = async () => {
     }
 };
 
-// Actualizar datos del perfil del usuario
+/**
+ * Actualiza los datos del perfil del usuario
+ * @param {Object} profileData - Nuevos datos del perfil
+ * @returns {Promise<Object>} Perfil actualizado
+ */
 export const updateUserProfile = async (profileData) => {
     try {
         const response = await api.put('/profile', profileData);
         return response.data;
     } catch (error) {
-        // Mensaje de error personalizado si es un error de contraseña
+        // Manejo específico para errores de contraseña incorrecta
         if (error.response && error.response.status === 401 && error.response.data.error === 'Contraseña actual incorrecta') {
             handleApiError(error, 'Contraseña actual incorrecta');
         } else {
@@ -145,7 +184,12 @@ export const updateUserProfile = async (profileData) => {
     }
 };
 
-// Función centralizada para manejo de errores
+/**
+ * Función centralizada para manejo de errores de API
+ * Procesa y formatea mensajes de error para mejor UX
+ * @param {Error} error - Error original de axios
+ * @param {string} defaultMessage - Mensaje predeterminado si no hay detalles
+ */
 const handleApiError = (error, defaultMessage) => {
     let errorMessage = defaultMessage;
 
@@ -161,12 +205,15 @@ const handleApiError = (error, defaultMessage) => {
         errorMessage = 'No se pudo conectar con el servidor';
     }
 
-    // Aquí podrías implementar un sistema de logging o mostrar notificaciones
+    // Log de error para debugging
     console.error('[API Error]', errorMessage);
 
-    // Mantenemos el error original pero con mensaje mejorado
+    // Asigna el mensaje formateado al error original
     error.message = errorMessage;
 };
 
-// Exportamos también la configuración para posibles usos en otros archivos
+/**
+ * Configuración exportada para uso en otros módulos
+ * @type {Object}
+ */
 export const apiConfig = API_CONFIG;

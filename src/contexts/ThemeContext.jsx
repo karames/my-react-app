@@ -1,7 +1,10 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import PropTypes from 'prop-types';
 
-// Tema claro (por defecto)
+/**
+ * Definición del tema claro (por defecto)
+ * Contiene colores y valores para el modo claro de la aplicación
+ */
 const lightTheme = {
     primary: '#007bff',
     primaryDark: '#0056b3',
@@ -16,7 +19,10 @@ const lightTheme = {
     info: '#17a2b8',
 };
 
-// Tema oscuro
+/**
+ * Definición del tema oscuro
+ * Contiene colores y valores para el modo oscuro de la aplicación
+ */
 const darkTheme = {
     primary: '#0d6efd',
     primaryDark: '#0a58ca',
@@ -31,20 +37,36 @@ const darkTheme = {
     info: '#0dcaf0',
 };
 
-// Crear el contexto de tema
+/**
+ * Contexto para la gestión de temas en la aplicación
+ * @type {React.Context}
+ */
 const ThemeContext = createContext({
     theme: lightTheme,
     themeMode: 'light',
     toggleTheme: () => { },
 });
 
+/**
+ * Hook personalizado para acceder al contexto de tema
+ * @returns {Object} El contexto de tema con valores y funciones
+ */
 export const useTheme = () => useContext(ThemeContext);
 
+/**
+ * Componente proveedor que gestiona el estado del tema de la aplicación
+ * @param {Object} props - Propiedades del componente
+ * @param {React.ReactNode} props.children - Componentes hijos
+ */
 export const ThemeProvider = ({ children }) => {
+    // Estado para el modo de tema actual (light/dark)
     const [themeMode, setThemeMode] = useState('light');
+    // Estado para los valores concretos del tema según el modo
     const [theme, setTheme] = useState(lightTheme);
 
-    // Cargar el tema guardado en localStorage
+    /**
+     * Efecto para cargar el tema guardado en localStorage al montar el componente
+     */
     useEffect(() => {
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme) {
@@ -52,12 +74,16 @@ export const ThemeProvider = ({ children }) => {
         }
     }, []);
 
-    // Actualizar el tema cuando cambie el modo
+    /**
+     * Efecto para actualizar los valores del tema cuando cambia el modo
+     */
     useEffect(() => {
         setTheme(themeMode === 'dark' ? darkTheme : lightTheme);
     }, [themeMode]);
 
-    // Función para cambiar entre tema claro y oscuro
+    /**
+     * Cambia entre tema claro y oscuro, y guarda la preferencia
+     */
     const toggleTheme = () => {
         const newThemeMode = themeMode === 'light' ? 'dark' : 'light';
         setThemeMode(newThemeMode);

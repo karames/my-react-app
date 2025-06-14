@@ -1,6 +1,11 @@
 import { createGlobalStyle } from 'styled-components';
 import { useTheme } from '../contexts/ThemeContext';
 
+/**
+ * Estilos globales base de la aplicación
+ * Define variables CSS personalizadas que adoptan los valores del tema actual
+ * Establece reset de CSS y estilos base para elementos HTML comunes
+ */
 const BaseStyles = createGlobalStyle`
     :root {
         --primary: ${props => props.theme.primary};
@@ -161,6 +166,11 @@ const BaseStyles = createGlobalStyle`
     }
 `;
 
+/**
+ * Componente que aplica los estilos globales
+ * Obtiene el tema actual del contexto ThemeContext y lo inyecta en los estilos globales
+ * @returns {React.Component} Componente de estilos globales con el tema aplicado
+ */
 const GlobalStyles = () => {
     const { theme, themeMode } = useTheme();
     return <BaseStyles theme={theme} themeMode={themeMode} />;

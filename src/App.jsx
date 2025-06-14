@@ -4,7 +4,9 @@ import styled from 'styled-components';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { NotificationManager } from './components/common/Notification';
 
-// Componentes
+/**
+ * Importación de componentes principales de la aplicación
+ */
 import Auth from './components/Auth';
 import Create from './components/Create';
 import Read from './components/Read';
@@ -12,7 +14,9 @@ import Update from './components/Update';
 import Profile from './components/Profile';
 import GlobalStyles from './styles/GlobalStyles';
 
-// Estilos
+/**
+ * Componentes de estilo para la estructura principal de la aplicación
+ */
 const AppContainer = styled.div`
     display: flex;
     flex-direction: column;
@@ -111,23 +115,49 @@ const Footer = styled.footer`
     text-align: center;
     font-size: 0.9rem;
     color: #666;
+
+    a {
+        color: #4a90e2;
+        text-decoration: none;
+        transition: color 0.2s ease;
+
+        &:hover {
+            color: #2a6fc9;
+            text-decoration: underline;
+        }
+    }
 `;
 
-// Componente para rutas protegidas
+/**
+ * Componente de ruta protegida que verifica la autenticación
+ * @param {Object} props - Propiedades del componente
+ * @param {React.ReactNode} props.children - Componentes hijo a renderizar si está autenticado
+ * @returns {React.ReactNode} Componente hijo si está autenticado o redirección al login
+ */
 const PrivateRoute = ({ children }) => {
     const { isAuthenticated } = useAuth();
     return isAuthenticated ? children : <Navigate to="/login" />;
 };
 
-// Componente principal de navegación
+/**
+ * Componente de navegación principal con barra de menú adaptativa
+ * Muestra opciones según el estado de autenticación del usuario
+ */
 const Navigation = () => {
     const { user, logout } = useAuth();
 
+    /**
+     * Gestiona el cierre de sesión y muestra notificación
+     */
     const handleLogout = () => {
         logout();
         window.notifications.success('Has cerrado sesión correctamente');
     };
 
+    /**
+     * Genera un saludo personalizado según la hora del día
+     * @returns {string} Saludo apropiado para el momento del día
+     */
     const getGreeting = () => {
         const hour = new Date().getHours();
         if (hour < 12) return 'Buenos días';
@@ -203,7 +233,7 @@ const AppContent = () => {
                     </Routes>
                 </MainContent>
                 <Footer>
-                    © {new Date().getFullYear()} Gonzalo Rodríguez de Dios Cabrera - App React - Todos los derechos reservados
+                    © {new Date().getFullYear()} Gonzalo Rodríguez de Dios Cabrera - App React - <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noopener noreferrer">Licencia MIT</a>
                 </Footer>
             </AppContainer>
             <NotificationManager />
@@ -211,7 +241,10 @@ const AppContent = () => {
     );
 };
 
-// Aplicación con proveedores de contexto
+/**
+ * Componente raíz de la aplicación que configura los proveedores de contexto
+ * Encapsula toda la aplicación con el AuthProvider para la gestión de autenticación
+ */
 const App = () => {
     return (
         <AuthProvider>

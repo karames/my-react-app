@@ -1,22 +1,51 @@
+/**
+ * Configuración de Vite para la aplicación React
+ * @see {@link https://vitejs.dev/config/} para más información
+ */
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
+    /**
+     * Plugins utilizados por Vite
+     * @see {@link https://vitejs.dev/plugins/}
+     */
     plugins: [
-        react(),
+        react(), // Plugin oficial para soporte de React
     ],
+
+    /**
+     * Configuración del servidor de desarrollo
+     */
     server: {
-        port: 5173,
-        open: true,
+        port: 5173,      // Puerto en el que se ejecutará el servidor de desarrollo
+        open: true,      // Abre automáticamente el navegador al iniciar
     },
+
+    /**
+     * Configuración de construcción para producción
+     */
     build: {
-        outDir: 'dist',
+        outDir: 'dist',  // Directorio donde se generarán los archivos de producción
     },
-    root: '.', // Añadir la configuración de la raíz del proyecto
-    base: './', // Añadir la configuración de la base del proyecto
+
+    /**
+     * Directorio raíz del proyecto
+     */
+    root: '.',
+
+    /**
+     * Ruta base para los assets en producción
+     * './' permite desplegar la aplicación en cualquier subdirectorio
+     */
+    base: './',
+
+    /**
+     * Configuración de resolución de rutas
+     */
     resolve: {
         alias: {
-            '@': '/src',
+            '@': '/src', // Permite usar '@/' como alias para la carpeta src
         },
     },
 });

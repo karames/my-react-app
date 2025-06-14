@@ -133,7 +133,9 @@ const SuccessMessage = styled.p`
 `;
 
 /**
- * Componente reutilizable para formularios
+ * Campo de formulario adaptable que renderiza el tipo de entrada apropiado (input, textarea, select)
+ * según el prop 'type' proporcionado. Maneja automáticamente etiquetas, mensajes de error y
+ * estados como disabled y required.
  */
 const FormField = ({ label, name, type, value, onChange, error, placeholder, disabled, required, options, children, ...rest }) => {
     return (

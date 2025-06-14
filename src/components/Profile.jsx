@@ -5,6 +5,10 @@ import { useTheme } from '../contexts/ThemeContext';
 import { fetchUserProfile, updateUserProfile } from '../utils/api';
 import { FormWrapper, FormContainer, FormTitle, FormField, ButtonsContainer, Button } from './common/FormComponents';
 
+/**
+ * Componentes de estilo para la página de perfil de usuario
+ * Diseñados para proporcionar una experiencia visual atractiva y coherente
+ */
 const ProfileContainer = styled(FormWrapper)`
     max-width: 1000px;
     margin: 0 auto;
@@ -104,9 +108,22 @@ const FormSection = styled.div`
     }
 `;
 
+/**
+ * Página de perfil de usuario
+ * Permite a los usuarios ver y editar su información personal, preferencias y cambiar contraseña
+ */
+/**
+ * Componente de perfil de usuario que permite visualizar y editar información personal,
+ * preferencias de tema y cambiar la contraseña.
+ * Utiliza varios contextos y hooks para gestionar el estado y las interacciones.
+ */
 const Profile = () => {
+    // Acceso a datos y estado del usuario autenticado
     const { user, loading: authLoading } = useAuth();
+    // Acceso al modo de tema actual
     const { themeMode } = useTheme();
+
+    // Estado principal para los datos de perfil y campos de formulario
     const [profileData, setProfileData] = useState({
         name: '',
         email: '',
@@ -115,19 +132,29 @@ const Profile = () => {
         newPassword: '',
         confirmPassword: '',
     });
+
+    // Estado para controlar operaciones asíncronas
     const [loading, setLoading] = useState(false);
+
+    // Estado para validación de campos de contraseña
     const [passwordErrors, setPasswordErrors] = useState({
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
     });
 
+    /**
+     * Efecto para cargar los datos del perfil del usuario al montar el componente
+     * o cuando cambia el usuario autenticado
+     */
     useEffect(() => {
         const loadUserProfile = async () => {
             if (user) {
                 try {
+                    // Obtener datos del perfil desde la API
                     const profile = await fetchUserProfile();
 
+                    // Actualizar el estado con los datos obtenidos o valores por defecto
                     setProfileData({
                         ...profileData,
                         name: profile.name || user.email.split('@')[0] || '',
@@ -136,7 +163,8 @@ const Profile = () => {
                     });
                 } catch (error) {
                     console.error('Error al cargar el perfil:', error);
-                    // Si falla, usamos los datos del usuario
+
+                    // Si falla la API, utilizar datos del contexto de autenticación
                     setProfileData({
                         ...profileData,
                         name: user.name || user.email.split('@')[0] || '',
@@ -151,6 +179,10 @@ const Profile = () => {
         loadUserProfile();
     }, [user]);
 
+    /**
+     * Maneja cambios en los campos del formulario y limpia errores asociados
+     * @param {React.ChangeEvent<HTMLInputElement>} e - Evento de cambio
+     */
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setProfileData({ ...profileData, [name]: value });
@@ -161,11 +193,16 @@ const Profile = () => {
         }
     };
 
+    /**
+     * Maneja el cambio de tema y lo guarda en localStorage
+     * @param {React.ChangeEvent<HTMLSelectElement>} e - Evento de cambio del selector
+     */
     const handleThemeChange = (e) => {
         const { value } = e.target;
         setProfileData({ ...profileData, theme: value });
 
         try {
+            // Guardar preferencia de tema en localStorage para persistencia
             localStorage.setItem('theme', value);
             // Notificación inmediata para mejor experiencia de usuario
             window.notifications.success('Tema actualizado');
@@ -174,19 +211,26 @@ const Profile = () => {
         }
     };
 
+    /**
+     * Valida los campos de contraseña antes de enviar al servidor
+     * @returns {boolean} true si las validaciones pasan, false si hay errores
+     */
     const validatePasswordChange = () => {
         const errors = {};
 
+        // Validar que la contraseña actual no esté vacía
         if (!profileData.currentPassword) {
             errors.currentPassword = 'La contraseña actual es obligatoria';
         }
 
+        // Validar la nueva contraseña
         if (!profileData.newPassword) {
             errors.newPassword = 'La nueva contraseña es obligatoria';
         } else if (profileData.newPassword.length < 6) {
             errors.newPassword = 'La contraseña debe tener al menos 6 caracteres';
         }
 
+        // Validar que las contraseñas coincidan
         if (profileData.newPassword !== profileData.confirmPassword) {
             errors.confirmPassword = 'Las contraseñas no coinciden';
         }
@@ -195,6 +239,10 @@ const Profile = () => {
         return Object.keys(errors).length === 0;
     };
 
+    /**
+     * Guarda los cambios en el perfil según la sección especificada
+     * @param {string} section - Sección a guardar ('info' o 'preferences')
+     */
     const handleSaveProfile = async (section = 'info') => {
         setLoading(true);
         try {
@@ -206,8 +254,6 @@ const Profile = () => {
             } else if (section === 'preferences') {
                 dataToSend = { preferences: { theme: profileData.theme } };
             }
-
-            console.log(`Guardando sección ${section}:`, dataToSend);
 
             // Enviamos los datos a la API
             const updatedProfile = await updateUserProfile(dataToSend);
@@ -221,6 +267,7 @@ const Profile = () => {
                     : prevData.theme
             }));
 
+            // Mostrar mensaje de éxito específico para la sección
             const successMessage = section === 'info'
                 ? 'Información personal actualizada correctamente'
                 : 'Preferencias actualizadas correctamente';
@@ -229,6 +276,7 @@ const Profile = () => {
         } catch (error) {
             console.error(`Error al actualizar ${section}:`, error);
 
+            // Mostrar mensaje de error específico para la sección
             const errorMessage = section === 'info'
                 ? 'Error al actualizar información personal'
                 : 'Error al actualizar preferencias';
@@ -239,23 +287,28 @@ const Profile = () => {
         }
     };
 
+    /**
+     * Gestiona el proceso de cambio de contraseña
+     * Valida los campos, envía la petición y maneja la respuesta
+     */
     const handleChangePassword = async () => {
+        // Validar campos antes de proceder
         if (!validatePasswordChange()) {
             return;
         }
 
         setLoading(true);
         try {
-            // Enviamos solo las contraseñas
+            // Preparar datos para la API (solo las contraseñas)
             const dataToSend = {
                 currentPassword: profileData.currentPassword,
                 newPassword: profileData.newPassword
             };
 
-            // Enviamos los datos a la API
+            // Enviar petición de cambio de contraseña
             await updateUserProfile(dataToSend);
 
-            // Limpiar los campos de contraseña
+            // Limpiar los campos de contraseña tras éxito
             setProfileData({
                 ...profileData,
                 currentPassword: '',
@@ -272,14 +325,20 @@ const Profile = () => {
         }
     };
 
+    // Mostrar estado de carga mientras se obtiene información del usuario
     if (authLoading) {
         return <div>Cargando perfil...</div>;
     }
 
+    // Redirección o mensaje si no hay usuario autenticado
     if (!user) {
         return <div>Debes iniciar sesión para ver esta página</div>;
     }
 
+    /**
+     * Obtiene las iniciales del nombre para mostrar en el avatar
+     * @returns {string} Inicial del nombre o "?" si no hay nombre
+     */
     const getInitials = () => {
         if (!profileData.name) return '?';
         return profileData.name.charAt(0).toUpperCase();
@@ -288,13 +347,16 @@ const Profile = () => {
     return (
         <ProfileContainer>
             <ProfileCard width="800px">
+                {/* Cabecera del perfil con avatar e información básica */}
                 <ProfileHeader>
                     <Avatar>{getInitials()}</Avatar>
                     <UserInfo>
                         <UserName>{profileData.name || 'Usuario'}</UserName>
                         <UserEmail>{profileData.email}</UserEmail>
                     </UserInfo>
-                </ProfileHeader>                {/* Información Personal */}
+                </ProfileHeader>
+
+                {/* Sección: Información Personal */}
                 <FormSection theme={themeMode}>
                     <FormTitle>Información Personal</FormTitle>
 
@@ -327,7 +389,7 @@ const Profile = () => {
                     </ButtonsContainer>
                 </FormSection>
 
-                {/* Preferencias */}
+                {/* Sección: Preferencias del usuario y tema */}
                 <FormSection theme={themeMode}>
                     <FormTitle>Preferencias</FormTitle>
 
@@ -356,7 +418,7 @@ const Profile = () => {
                     </p>
                 </FormSection>
 
-                {/* Cambiar Contraseña */}
+                {/* Sección: Gestión de cambio de contraseña */}
                 <FormSection theme={themeMode}>
                     <FormTitle>Cambiar Contraseña</FormTitle>
 
@@ -400,6 +462,7 @@ const Profile = () => {
                     </ButtonsContainer>
                 </FormSection>
 
+                {/* Nota informativa sobre el guardado de cambios */}
                 <p style={{ fontSize: '0.9rem', color: '#666', marginTop: '20px', textAlign: 'center' }}>
                     Todos los cambios se guardan automáticamente al hacer clic en los respectivos botones.
                 </p>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styled, { keyframes } from 'styled-components';
 
-// Animaciones
+// Keyframes para las animaciones de entrada, salida y barra de progreso
 const fadeIn = keyframes`
   from {
     opacity: 0;
@@ -130,17 +130,24 @@ const NotificationTitle = styled.h4`
     margin: 0 0 5px 0;
     font-size: 14px;
     font-weight: 600;
-    color: inherit; /* Asegura que hereda el color del contenedor padre */
+    color: inherit;
 `;
 
 const NotificationMessage = styled.p`
     margin: 0;
     font-size: 13px;
-    color: inherit; /* Asegura que hereda el color del contenedor padre */
+    color: inherit;
 `;
 
 /**
- * Componente para mostrar notificaciones en la aplicación
+ * Componente que muestra una notificación individual con animaciones de entrada/salida
+ * @param {string|number} id - Identificador único de la notificación
+ * @param {string} type - Tipo de notificación: 'success', 'error', 'warning', 'info'
+ * @param {string} title - Título opcional de la notificación
+ * @param {string} message - Mensaje de la notificación
+ * @param {number} duration - Duración en ms antes de cerrarse automáticamente (0 para persistir)
+ * @param {function} onClose - Función a ejecutar cuando se cierra la notificación
+ * @param {boolean} isExiting - Indica si la notificación está en proceso de desaparición
  */
 const Notification = ({ id, type, title, message, duration, onClose, isExiting }) => {
     useEffect(() => {
@@ -177,23 +184,29 @@ Notification.propTypes = {
 
 Notification.defaultProps = {
     type: 'info',
-    duration: 5000, // 5 segundos por defecto
+    duration: 5000,
     isExiting: false,
 };
 
 /**
- * Componente contenedor para gestionar todas las notificaciones
+ * Componente contenedor que gestiona el estado global de notificaciones
+ * Expone en window.notifications los métodos:
+ * - success(message, title, duration): muestra notificación de éxito
+ * - error(message, title, duration): muestra notificación de error
+ * - warning(message, title, duration): muestra notificación de advertencia
+ * - info(message, title, duration): muestra notificación informativa
+ * - clear(): elimina todas las notificaciones activas
  */
 const NotificationManager = () => {
     const [notifications, setNotifications] = useState([]);
     const [exitingIds, setExitingIds] = useState(new Set());
 
-    // Función para cerrar una notificación
+    // Cierra una notificación con animación de salida
     const handleClose = (id) => {
         // Marca la notificación como saliente para animar su salida
         setExitingIds(prev => new Set([...prev, id]));
 
-        // Después de la animación, elimina realmente la notificación
+        // Elimina la notificación del estado después de completar la animación
         setTimeout(() => {
             setNotifications(prev => prev.filter(notif => notif.id !== id));
             setExitingIds(prev => {
@@ -201,19 +214,19 @@ const NotificationManager = () => {
                 newSet.delete(id);
                 return newSet;
             });
-        }, 300); // Duración de la animación fadeOut
+        }, 300);
     };
 
-    // Función para añadir una nueva notificación (expuesta globalmente)
+    // Añade una nueva notificación con ID único y la agrega al estado
     const addNotification = (notification) => {
-        const id = Date.now(); // ID único basado en timestamp
+        const id = Date.now();
         setNotifications(prev => [...prev, { ...notification, id }]);
         return id;
     };
 
-    // Exponer las funciones globalmente
+    // Expone la API de notificaciones en window.notifications
     useEffect(() => {
-        // Duración predeterminada de 5 segundos (5000ms) para todas las notificaciones
+        // Configura la duración predeterminada en 5 segundos
         const defaultDuration = 5000;
 
         window.notifications = {

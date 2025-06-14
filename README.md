@@ -1,5 +1,7 @@
 # My React App - CRUD con Autenticación
 
+## Gonzalo Rodríguez de Dios Cabrera
+
 ## Introducción
 
 Este proyecto implementa una aplicación React moderna con Vite que ofrece operaciones CRUD completas, autenticación JWT segura, y una interfaz de usuario profesional usando styled-components. La aplicación cuenta con un sistema de notificaciones avanzado, tema claro/oscuro personalizable, y gestión completa del perfil de usuario.
@@ -171,24 +173,24 @@ Para acceder a la aplicación, utiliza:
 
 ### Rutas de la Aplicación
 
-| Ruta | Componente | Acceso | Descripción |
-|------|-----------|--------|-------------|
-| `/` | `Auth.jsx` | Público | Página de inicio/login para autenticación |
-| `/read` | `Read.jsx` | Privado | Lista de registros con opciones de búsqueda, edición y eliminación |
-| `/create` | `Create.jsx` | Privado | Formulario para crear nuevos registros |
-| `/update/:id` | `Update.jsx` | Privado | Formulario para actualizar un registro existente |
-| `/profile` | `Profile.jsx` | Privado | Gestión del perfil de usuario con datos personales y preferencias |
+| Ruta          | Componente    | Acceso  | Descripción                                                        |
+| ------------- | ------------- | ------- | ------------------------------------------------------------------ |
+| `/`           | `Auth.jsx`    | Público | Página de inicio/login para autenticación                          |
+| `/read`       | `Read.jsx`    | Privado | Lista de registros con opciones de búsqueda, edición y eliminación |
+| `/create`     | `Create.jsx`  | Privado | Formulario para crear nuevos registros                             |
+| `/update/:id` | `Update.jsx`  | Privado | Formulario para actualizar un registro existente                   |
+| `/profile`    | `Profile.jsx` | Privado | Gestión del perfil de usuario con datos personales y preferencias  |
 
 ### Endpoints de la API
 
-| Endpoint | Método | Autenticación | Descripción |
-|----------|--------|--------------|-------------|
-| `/login` | POST | No | Autenticación de usuarios y obtención de token JWT |
-| `/users/:id` | GET/PUT | Sí | Obtención y actualización de datos de usuario |
-| `/records` | GET/POST | Sí | Obtención de todos los registros y creación de nuevos |
-| `/records/:id` | GET/PUT/DELETE | Sí | Operaciones sobre un registro específico |
-| `/profile` | GET | Sí | Obtención de datos del perfil del usuario autenticado |
-| `/profile` | PUT | Sí | Actualización de datos del perfil del usuario autenticado |
+| Endpoint       | Método         | Autenticación | Descripción                                               |
+| -------------- | -------------- | ------------- | --------------------------------------------------------- |
+| `/login`       | POST           | No            | Autenticación de usuarios y obtención de token JWT        |
+| `/users/:id`   | GET/PUT        | Sí            | Obtención y actualización de datos de usuario             |
+| `/records`     | GET/POST       | Sí            | Obtención de todos los registros y creación de nuevos     |
+| `/records/:id` | GET/PUT/DELETE | Sí            | Operaciones sobre un registro específico                  |
+| `/profile`     | GET            | Sí            | Obtención de datos del perfil del usuario autenticado     |
+| `/profile`     | PUT            | Sí            | Actualización de datos del perfil del usuario autenticado |
 
 ## Componentes y Arquitectura
 
@@ -258,6 +260,7 @@ App.jsx
 ### Componentes Comunes
 
 1. **FormComponents.jsx**
+
    - Componentes reutilizables para formularios con estados visuales.
    - Manejo unificado de errores y validación.
    - Optimizados para funcionar con ambos temas (claro/oscuro).
@@ -271,6 +274,7 @@ App.jsx
 ### Contextos
 
 1. **AuthContext.jsx**
+
    - Gestión centralizada del estado de autenticación.
    - Almacenamiento seguro de tokens JWT en localStorage.
    - Interceptores para peticiones autenticadas con Axios.
@@ -295,8 +299,8 @@ App.jsx
 Uso desde cualquier componente:
 
 ```javascript
-window.notifications.success('Operación completada');
-window.notifications.error('Ha ocurrido un error');
+window.notifications.success("Operación completada");
+window.notifications.error("Ha ocurrido un error");
 ```
 
 ### Autenticación y Seguridad
@@ -349,6 +353,7 @@ window.notifications.error('Ha ocurrido un error');
 ## Tecnologías Utilizadas
 
 - **Frontend**
+
   - React 19 con Vite 6.
   - React Router v7.
   - Styled Components v6.
@@ -356,6 +361,7 @@ window.notifications.error('Ha ocurrido un error');
   - Axios con interceptores.
 
 - **Backend**
+
   - JSON Server.
   - JSON Server Auth.
   - JWT para autenticación.

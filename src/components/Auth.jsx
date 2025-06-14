@@ -3,6 +3,9 @@ import styled from 'styled-components';
 import { useAuth } from '../contexts/AuthContext';
 import { FormWrapper, FormContainer, FormTitle, FormField, ButtonsContainer, Button } from './common/FormComponents';
 
+/**
+ * Componentes de estilo para la página de autenticación
+ */
 const AuthCard = styled(FormContainer)`
     background-color: white;
     border-radius: 8px;
@@ -20,22 +23,30 @@ const AuthContainer = styled(FormWrapper)`
     min-height: 80vh;
 `;
 
+/**
+ * Componente de autenticación que gestiona el inicio de sesión del usuario
+ * Incluye validación de formularios y manejo de errores
+ */
 const Auth = () => {
-    // Estado local para el formulario
+    // Estado para los datos del formulario (email y contraseña)
     const [formData, setFormData] = useState({
         email: '',
         password: '',
     });
 
-    // Estado local para validación
+    // Estado para los mensajes de error de validación
     const [fieldErrors, setFieldErrors] = useState({
         email: '',
         password: '',
     });
 
-    // Usar el contexto de autenticación
+    // Hook de autenticación para acceder a las funciones de login
     const { login, loading, error: authError, setError } = useAuth();
 
+    /**
+     * Maneja los cambios en los campos del formulario y limpia errores
+     * @param {React.ChangeEvent<HTMLInputElement>} e - Evento de cambio
+     */
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
@@ -46,6 +57,10 @@ const Auth = () => {
         }
     };
 
+    /**
+     * Valida el formulario antes del envío
+     * @returns {boolean} true si el formulario es válido, false en caso contrario
+     */
     const validateForm = () => {
         const errors = {};
 
@@ -67,36 +82,32 @@ const Auth = () => {
         return Object.keys(errors).length === 0;
     };
 
+    /**
+     * Maneja el envío del formulario de inicio de sesión
+     * @param {React.FormEvent} e - Evento de envío de formulario
+     */
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(''); // Limpiar errores previos del contexto
 
-        // Validar formulario
+        // Validar formulario antes de procesar
         if (!validateForm()) return;
 
-        // Intentar iniciar sesión
         try {
-            console.log("Intentando login con:", { email: formData.email, password: "***" });
             const result = await login(formData.email, formData.password);
 
             if (result.success) {
                 window.notifications.success('¡Bienvenido/a!');
 
-                // Si hay una ruta de redirección después del login, navegar a ella
+                // Manejo de redirección post-login
                 if (result.redirectPath) {
-                    console.log('Redirigiendo a:', result.redirectPath);
-                    // Usando la API de History para navegar sin recargar la página
+                    // Navegación SPA usando History API
                     window.history.pushState({}, '', result.redirectPath);
-                    // Disparar un evento para que el router de la aplicación reaccione
                     window.dispatchEvent(new Event('popstate'));
                 }
-                // Si no hay redirección específica, la navegación por defecto se encargará
             }
         } catch (err) {
-            // El error ya se maneja en el contexto de autenticación
             console.error('Error en login:', err);
-
-            // Podemos añadir notificación visual además del error en pantalla
             window.notifications?.error('Error al iniciar sesión');
         }
     };
@@ -106,6 +117,7 @@ const Auth = () => {
             <AuthCard onSubmit={handleSubmit}>
                 <FormTitle>Iniciar sesión</FormTitle>
 
+                {/* Información de credenciales para pruebas */}
                 <p style={{ marginBottom: '15px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
                     Utiliza las siguientes credenciales de prueba: <br />
                     Email: <strong>nuevo@test.com</strong> <br />
@@ -135,12 +147,14 @@ const Auth = () => {
                     required
                 />
 
+                {/* Mostrar mensaje de error de autenticación si existe */}
                 {authError && (
                     <p style={{ color: 'red', marginTop: '10px', fontSize: '0.9rem' }}>
                         {authError}
                     </p>
                 )}
 
+                {/* Botón de envío del formulario */}
                 <ButtonsContainer $align="center">
                     <Button
                         type="submit"

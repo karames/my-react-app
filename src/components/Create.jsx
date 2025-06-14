@@ -3,25 +3,34 @@ import { useNavigate } from 'react-router-dom';
 import { createRecord } from '../utils/api';
 import { FormWrapper, FormContainer, FormTitle, FormField, ButtonsContainer, Button } from './common/FormComponents';
 
+/**
+ * Componente que gestiona la creación de un nuevo registro
+ * Incluye formulario con validación y manejo de peticiones a la API
+ */
 const Create = () => {
+    // Hook para navegación programática
     const navigate = useNavigate();
 
-    // Estado del formulario
+    // Estado para almacenar los datos del formulario
     const [formData, setFormData] = useState({
         title: '',
         description: '',
     });
 
-    // Estado para validación
+    // Estado para mensajes de error de validación por campo
     const [fieldErrors, setFieldErrors] = useState({
         title: '',
         description: '',
     });
 
-    // Estado para loading y errores generales
+    // Estados para control de la UI durante operaciones asíncronas
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
+    /**
+     * Maneja los cambios en los campos del formulario
+     * @param {React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>} e - Evento de cambio
+     */
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
@@ -32,6 +41,10 @@ const Create = () => {
         }
     };
 
+    /**
+     * Valida los campos del formulario antes del envío
+     * @returns {boolean} true si el formulario es válido, false en caso contrario
+     */
     const validateForm = () => {
         const errors = {};
 
@@ -53,19 +66,23 @@ const Create = () => {
         return Object.keys(errors).length === 0;
     };
 
+    /**
+     * Gestiona el envío del formulario y la creación del registro
+     * @param {React.FormEvent} e - Evento de envío del formulario
+     */
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
+        setError(''); // Limpiar errores previos
 
-        // Validar formulario
+        // Evitar envío si hay errores de validación
         if (!validateForm()) return;
 
-        // Crear registro
         setLoading(true);
         try {
+            // Enviar datos a la API para crear el registro
             await createRecord(formData);
             window.notifications.success('Registro creado correctamente');
-            navigate('/read'); // Redireccionar a la lista de registros
+            navigate('/read'); // Redirigir a la lista de registros
         } catch (error) {
             setError(error.message || 'Error al crear el registro');
             window.notifications.error('Error al crear el registro');
@@ -74,12 +91,16 @@ const Create = () => {
         }
     };
 
+    /**
+     * Cancela la creación y regresa a la lista de registros
+     */
     const handleCancel = () => {
         navigate('/read');
     };
 
     return (
         <FormWrapper>
+            {/* Formulario de creación de un nuevo registro */}
             <FormContainer onSubmit={handleSubmit} $width="500px">
                 <FormTitle>Crear Nuevo Registro</FormTitle>
 
@@ -106,12 +127,14 @@ const Create = () => {
                     required
                 />
 
+                {/* Mostrar mensaje de error general si existe */}
                 {error && (
                     <p style={{ color: 'red', marginTop: '10px', fontSize: '0.9rem' }}>
                         {error}
                     </p>
                 )}
 
+                {/* Botones de acción */}
                 <ButtonsContainer>
                     <Button
                         type="button"

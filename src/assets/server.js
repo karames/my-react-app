@@ -1,15 +1,24 @@
+/**
+ * Servidor API REST para la aplicación React CRUD con autenticación JWT
+ * Implementa json-server-auth para gestión de usuarios y tokens
+ */
+
 const jsonServer = require('json-server');
 const auth = require('json-server-auth');
 const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
 
-// Configuración del servidor
+// Inicialización del servidor y recursos básicos
 const server = jsonServer.create();
 const pathToDb = path.join(__dirname, 'db.json');
 const middlewares = jsonServer.defaults();
 
-// Función para crear datos iniciales
+/**
+ * Genera la estructura inicial de datos para la base de datos
+ * Incluye usuario de prueba y registros de ejemplo
+ * @returns {Object} Datos iniciales estructurados
+ */
 const createInitialData = () => {
     console.log('Generando datos iniciales para db.json');
     return {
@@ -18,7 +27,8 @@ const createInitialData = () => {
                 id: 1,
                 name: "Nuevo Usuario",
                 email: "nuevo@test.com",
-                password: "$2a$10$TgPr46CU7ZWMoZ.JeowS5.X43SNn/BweWR.yO7gfPXhry1vHpcGJC", // 'password123' encriptado
+                // Contraseña: 'password123' (hash bcrypt)
+                password: "$2a$10$TgPr46CU7ZWMoZ.JeowS5.X43SNn/BweWR.yO7gfPXhry1vHpcGJC",
                 preferences: {
                     theme: "light"
                 }
@@ -54,7 +64,10 @@ const createInitialData = () => {
     };
 };
 
-// Verificar si el archivo db.json existe o está vacío
+/**
+ * Verifica la existencia y validez del archivo db.json
+ * Determina si es necesario inicializar la base de datos con datos por defecto
+ */
 let needsInitialData = false;
 if (!fs.existsSync(pathToDb)) {
     console.log('No se encuentra el archivo db.json. Se creará uno nuevo.');
@@ -63,6 +76,7 @@ if (!fs.existsSync(pathToDb)) {
     try {
         const fileContent = fs.readFileSync(pathToDb, 'utf8');
         const parsedContent = JSON.parse(fileContent);
+        // Se requiere que el archivo tenga las colecciones necesarias
         if (Object.keys(parsedContent).length === 0 || !parsedContent.users || !parsedContent.records) {
             console.log('El archivo db.json está vacío o tiene una estructura inválida. Se reinicializará.');
             needsInitialData = true;
@@ -73,7 +87,7 @@ if (!fs.existsSync(pathToDb)) {
     }
 }
 
-// Crear archivo con datos iniciales si es necesario
+// Inicialización de la base de datos si es necesario
 if (needsInitialData) {
     try {
         const initialData = createInitialData();
@@ -87,76 +101,170 @@ if (needsInitialData) {
 
 console.log('Usando db.json en:', pathToDb);
 
-// Inicializar el router con el archivo db.json ahora que estamos seguros que existe y tiene contenido
+// Inicializar el router con el archivo db.json
 const router = jsonServer.router(pathToDb);
 
 // Configuración del servidor
 server.db = router.db;
 
-// Configurar CORS
+/**
+ * Configuración de seguridad CORS
+ */
 const corsOptions = {
     origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
     optionsSuccessStatus: 200,
     credentials: true
 };
 
-// Aplicar middlewares básicos
+// Aplicación de middlewares esenciales
 server.use(cors(corsOptions));
 server.use(middlewares);
 server.use(jsonServer.bodyParser);
 
-// Añadir ruta raíz (no requiere autenticación)
+/**
+ * Endpoint raíz: Punto de entrada principal a la API
+ * Proporciona documentación interactiva sobre los endpoints disponibles
+ * No requiere autenticación para facilitar descubrimiento de la API
+ */
 server.get('/', (req, res) => {
-    res.json({
-        message: 'API server running',
-        endpoints: {
-            auth: '/login',
-            records: '/records',
-            profile: '/profile'
-        }
-    });
+    // Obtener versión desde package.json
+    try {
+        const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf8'));
+        const version = packageJson.version || '1.0.0';
+
+        res.json({
+            message: 'API server running',
+            status: 'online',
+            version: version,
+            serverTime: new Date().toISOString(),
+            documentation: 'https://my-react-app.demo/api-docs',
+            developer: 'Gonzalo Rodríguez de Dios Cabrera',
+            endpoints: {
+                auth: {
+                    login: {
+                        path: '/login',
+                        method: 'POST',
+                        description: 'Autenticación de usuarios y obtención de token JWT',
+                        requiresAuth: false
+                    }
+                },
+                records: {
+                    getAll: {
+                        path: '/records',
+                        method: 'GET',
+                        description: 'Obtiene todos los registros',
+                        requiresAuth: true,
+                        queryParams: ['_page', '_limit', 'q', '_sort', '_order']
+                    },
+                    getOne: {
+                        path: '/records/:id',
+                        method: 'GET',
+                        description: 'Obtiene un registro específico por ID',
+                        requiresAuth: true
+                    },
+                    create: {
+                        path: '/records',
+                        method: 'POST',
+                        description: 'Crea un nuevo registro',
+                        requiresAuth: true
+                    },
+                    update: {
+                        path: '/records/:id',
+                        method: 'PUT',
+                        description: 'Actualiza un registro existente',
+                        requiresAuth: true
+                    },
+                    delete: {
+                        path: '/records/:id',
+                        method: 'DELETE',
+                        description: 'Elimina un registro existente',
+                        requiresAuth: true
+                    }
+                },
+                profile: {
+                    get: {
+                        path: '/profile',
+                        method: 'GET',
+                        description: 'Obtiene el perfil del usuario autenticado',
+                        requiresAuth: true
+                    },
+                    update: {
+                        path: '/profile',
+                        method: 'PUT',
+                        description: 'Actualiza el perfil del usuario autenticado',
+                        requiresAuth: true
+                    }
+                },
+                users: {
+                    get: {
+                        path: '/users/:id',
+                        method: 'GET',
+                        description: 'Obtiene información de un usuario por ID',
+                        requiresAuth: true
+                    },
+                    update: {
+                        path: '/users/:id',
+                        method: 'PUT',
+                        description: 'Actualiza la información de un usuario',
+                        requiresAuth: true
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error al leer package.json:', error);
+        res.json({
+            message: 'API server running',
+            status: 'online',
+            endpoints: {
+                auth: '/login',
+                records: '/records',
+                profile: '/profile'
+            }
+        });
+    }
 });
 
-// Middleware personalizado para simular latencia de red (útil para testing)
-// server.use((req, res, next) => {
-//   setTimeout(next, 500); // Simular 500ms de latencia
-// });
-
-// Aplicar json-server-auth para las rutas de autenticación
+/**
+ * Configuración de autenticación con json-server-auth
+ * Define las reglas de acceso y autenticación para los endpoints
+ */
 const rules = auth.rewriter({
-    // Si necesitas personalizar las reglas de reescritura de rutas
+    // Si necesitamos personalizar las reglas de reescritura de rutas
 });
 server.use(rules);
 server.use(auth);
 
-// Middleware personalizado para verificar y depurar el token JWT
+// Middleware de diagnóstico para autenticación JWT
 server.use((req, res, next) => {
     const authHeader = req.headers.authorization;
-    console.log('Middleware de depuración - Headers Auth:', authHeader);
 
-    if (authHeader) {
-        const token = authHeader.split(' ')[1]; // Formato: Bearer <token>
-        console.log('Token extraído:', token ? 'Presente' : 'Ausente');
+    if (process.env.NODE_ENV !== 'production') {
+        console.log('Auth Headers:', authHeader ? 'Presentes' : 'Ausentes');
 
-        // Verificar si json-server-auth configuró correctamente req.user
-        console.log('req.user después de auth middleware:', req.user ? JSON.stringify(req.user) : 'No disponible');
+        if (authHeader) {
+            const token = authHeader.split(' ')[1];
+            console.log('Token JWT:', token ? 'Presente' : 'Ausente');
+            console.log('Usuario autenticado:', req.user ? 'Sí' : 'No');
 
-        // Si no hay req.user pero hay un token, podemos estar teniendo un problema con json-server-auth
-        // Intentemos verificar manualmente el token
-        if (!req.user && token) {
-            console.log('No se estableció req.user a pesar de tener un token. Posible problema con json-server-auth.');
-
-            // Podríamos añadir aquí lógica adicional para manejar el token si json-server-auth no lo hace correctamente
+            if (!req.user && token) {
+                console.log('⚠️ ADVERTENCIA: Token presente pero req.user no establecido');
+            }
         }
     }
 
     next();
 });
 
-// IMPORTANTE: Las rutas personalizadas que requieren autenticación deben ir DESPUÉS de auth
-// pero ANTES del router principal de json-server
+/**
+ * IMPORTANTE: Orden de los middlewares y rutas
+ * 1. Middlewares básicos (CORS, bodyParser)
+ * 2. Autenticación (json-server-auth)
+ * 3. Rutas personalizadas autenticadas
+ * 4. Router principal de json-server (al final)
+ */
 
-// Endpoint de prueba para verificar autenticación (sin usar el middleware auth)
+// Endpoint de diagnóstico para la autenticación
 server.get('/auth-test', (req, res) => {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
@@ -314,27 +422,27 @@ server.put('/profile', (req, res) => {
     }
 });
 
-// Middleware personalizado para validación de datos
+// Middleware de validación de datos
 server.use((req, res, next) => {
-    // Ejemplo de middleware personalizado
+    // Validación para creación de registros
     if (req.method === 'POST' && req.path === '/records') {
-        // Si es un POST a /records, verificar que tenga título y descripción
+        // Validar campos obligatorios
         if (!req.body.title || !req.body.description) {
             return res.status(400).json({
                 error: 'Los registros deben tener título y descripción'
             });
         }
 
-        // Reorganizar los campos para mantener un orden consistente (id, title, description)
-        // Nota: El id normalmente es asignado por json-server, así que aquí solo reorganizamos los campos proporcionados
+        // Normalizar estructura de datos
         const { title, description, ...rest } = req.body;
         req.body = {
-            ...rest,  // Mantenemos otros campos pero primero vendrá id (auto-asignado)
+            ...rest,
             title,
             description
         };
-    } else if ((req.method === 'PUT' || req.method === 'PATCH') && req.path.startsWith('/records/')) {
-        // También mantener el orden en las actualizaciones
+    }
+    // Validación para actualización de registros
+    else if ((req.method === 'PUT' || req.method === 'PATCH') && req.path.startsWith('/records/')) {
         const { title, description, ...rest } = req.body;
         if (title !== undefined || description !== undefined) {
             req.body = {
@@ -347,10 +455,10 @@ server.use((req, res, next) => {
     next();
 });
 
-// Usar el router de json-server al final
+// Aplicación del router principal de json-server
 server.use(router);
 
-// Manejo de errores
+// Middleware global de manejo de errores
 server.use((err, req, res, next) => {
     console.error('Error en el servidor:', err);
     res.status(500).json({
@@ -359,10 +467,11 @@ server.use((err, req, res, next) => {
     });
 });
 
-// Configurar el puerto
+// Configuración del puerto de escucha
 const PORT = process.env.PORT || 3001;
 
-// Iniciar el servidor
+// Inicio del servidor HTTP
 server.listen(PORT, () => {
-    console.log(`Servidor JSON ejecutándose en http://localhost:${PORT}`);
+    console.log(`✅ Servidor API ejecutándose en http://localhost:${PORT}`);
+    console.log(`📚 Documentación disponible en http://localhost:${PORT}/`);
 });
