@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import PropTypes from 'prop-types';
 import styled from 'styled-components';
+import { fetchRecords } from '../utils/api';
+import { useNavigate } from 'react-router-dom';
+import Delete from './Delete';
 
 const Container = styled.div`
     padding: 20px;
@@ -21,51 +23,50 @@ const RecordItem = styled.li`
 const Read = () => {
     const [records, setRecords] = useState([]);
     const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchRecords = async () => {
+        const fetchData = async () => {
+            setLoading(true);
             try {
-                const response = await fetch('http://localhost:3000/records');
-                if (!response.ok) {
-                    throw new Error('Error fetching records');
-                }
-
-                const text = await response.text();
-                if (!text) {
-                    throw new Error('Respuesta del servidor está vacía');
-                }
-
-                const data = JSON.parse(text);
+                const data = await fetchRecords();
                 setRecords(data);
             } catch (err) {
                 setError(err.message);
+            } finally {
+                setLoading(false);
             }
         };
 
-        fetchRecords();
+        fetchData();
     }, []);
 
     if (error) {
-        return <div>Error: {error}</div>;
+        return <div style={{ color: 'red' }}>Error: {error}</div>;
     }
+
+    const handleDelete = (id) => {
+        setRecords(records.filter(r => r.id !== id));
+    };
 
     return (
         <Container>
-            <h2>Records</h2>
-            <RecordList>
-                {records.map(record => (
-                    <RecordItem key={record.id}>
-                        <h3>{record.title}</h3>
-                        <p>{record.description}</p>
-                    </RecordItem>
-                ))}
-            </RecordList>
+            <h2>Registros</h2>
+            {loading ? <p>Cargando...</p> : (
+                <RecordList>
+                    {records.map(record => (
+                        <RecordItem key={record.id}>
+                            <h3>{record.title}</h3>
+                            <p>{record.description}</p>
+                            <button onClick={() => navigate(`/update/${record.id}`)}>Editar</button>
+                            <Delete id={record.id} onDelete={handleDelete} />
+                        </RecordItem>
+                    ))}
+                </RecordList>
+            )}
         </Container>
     );
-};
-
-Read.propTypes = {
-    records: PropTypes.array,
 };
 
 export default Read;

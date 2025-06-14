@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
+import { api, updateRecord } from '../utils/api';
 
 const UpdateContainer = styled.div`
     padding: 20px;
@@ -29,18 +30,23 @@ const Button = styled.button`
 `;
 
 const Update = ({ id, onUpdate }) => {
-    const [data, setData] = useState({ name: '', email: '' });
+    const [data, setData] = useState({ title: '', description: '' });
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
+            setLoading(true);
             try {
-                const response = await fetch(`http://localhost:3000/users/${id}`);
-                if (!response.ok) throw new Error('Error fetching data');
-                const result = await response.json();
-                setData(result);
+                const response = await api.get(`/records/${id}`);
+                setData({
+                    title: response.data.title || '',
+                    description: response.data.description || ''
+                });
             } catch (err) {
                 setError(err.message);
+            } finally {
+                setLoading(false);
             }
         };
         fetchData();
@@ -53,50 +59,54 @@ const Update = ({ id, onUpdate }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError('');
+        setLoading(true);
+        if (!data.title.trim() || !data.description.trim()) {
+            setError('Todos los campos son obligatorios');
+            setLoading(false);
+            return;
+        }
         try {
-            const response = await fetch(`http://localhost:3000/users/${id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            });
-            if (!response.ok) throw new Error('Error updating data');
-            onUpdate();
+            await updateRecord(id, data);
+            if (onUpdate) onUpdate();
         } catch (err) {
-            setError(err.message);
+            setError(err.message || 'Error al actualizar');
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
         <UpdateContainer>
             {error && <p style={{ color: 'red' }}>{error}</p>}
-            <Form onSubmit={handleSubmit}>
-                <Input
-                    type="text"
-                    name="name"
-                    value={data.name}
-                    onChange={handleChange}
-                    placeholder="Name"
-                    required
-                />
-                <Input
-                    type="email"
-                    name="email"
-                    value={data.email}
-                    onChange={handleChange}
-                    placeholder="Email"
-                    required
-                />
-                <Button type="submit">Update</Button>
-            </Form>
+            {loading ? <p>Cargando...</p> : (
+                <Form onSubmit={handleSubmit}>
+                    <Input
+                        type="text"
+                        name="title"
+                        value={data.title}
+                        onChange={handleChange}
+                        placeholder="Título"
+                        required
+                    />
+                    <Input
+                        type="text"
+                        name="description"
+                        value={data.description}
+                        onChange={handleChange}
+                        placeholder="Descripción"
+                        required
+                    />
+                    <Button type="submit">Actualizar</Button>
+                </Form>
+            )}
         </UpdateContainer>
     );
 };
 
 Update.propTypes = {
-    id: PropTypes.number.isRequired,
-    onUpdate: PropTypes.func.isRequired,
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    onUpdate: PropTypes.func,
 };
 
 export default Update;

@@ -1,26 +1,9 @@
 {
   "users": [
     {
-      "id": 1,
-      "username": "user1",
-      "password": "password1"
-    },
-    {
-      "id": 2,
-      "username": "user2",
-      "password": "password2"
+      "email": "test@correo.com",
+      "password": "1234"
     }
   ],
-  "records": [
-    {
-      "id": 1,
-      "title": "Record 1",
-      "description": "Description for record 1"
-    },
-    {
-      "id": 2,
-      "title": "Record 2",
-      "description": "Description for record 2"
-    }
-  ]
+  "records": []
 }

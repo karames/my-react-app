@@ -1,6 +1,15 @@
 import { createGlobalStyle } from 'styled-components';
 
 const GlobalStyles = createGlobalStyle`
+    :root {
+        --primary: #007bff;
+        --primary-dark: #0056b3;
+        --background: #f4f4f4;
+        --text: #333;
+        --border-radius: 4px;
+        --font-family: 'Arial', sans-serif;
+    }
+
     * {
         margin: 0;
         padding: 0;
@@ -8,9 +17,9 @@ const GlobalStyles = createGlobalStyle`
     }
 
     body {
-        font-family: 'Arial', sans-serif;
-        background-color: #f4f4f4;
-        color: #333;
+        font-family: var(--font-family);
+        background-color: var(--background);
+        color: var(--text);
         line-height: 1.6;
     }
 
@@ -20,7 +29,7 @@ const GlobalStyles = createGlobalStyle`
 
     a {
         text-decoration: none;
-        color: #007bff;
+        color: var(--primary);
     }
 
     a:hover {
@@ -30,15 +39,15 @@ const GlobalStyles = createGlobalStyle`
     button {
         cursor: pointer;
         border: none;
-        border-radius: 4px;
+        border-radius: var(--border-radius);
         padding: 0.5rem 1rem;
-        background-color: #007bff;
+        background-color: var(--primary);
         color: white;
         transition: background-color 0.3s;
     }
 
     button:hover {
-        background-color: #0056b3;
+        background-color: var(--primary-dark);
     }
 
     p {

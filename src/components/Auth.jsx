@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
+import { login } from '../utils/api';
 
 const AuthContainer = styled.div`
     display: flex;
@@ -37,60 +38,66 @@ const AuthButton = styled.button`
 `;
 
 const Auth = ({ onLogin }) => {
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const handleEmailChange = (e) => {
+        setEmail(e.target.value);
+    };
+    const handlePasswordChange = (e) => {
+        setPassword(e.target.value);
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-
+        setLoading(true);
+        if (!email.trim() || !password.trim()) {
+            setError('Todos los campos son obligatorios');
+            setLoading(false);
+            return;
+        }
         try {
-            const response = await fetch('http://localhost:3000/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ username, password }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Error en la autenticación');
-            }
-
-            const data = await response.json().catch(() => {
-                throw new Error('Respuesta del servidor no es un JSON válido');
-            });
-
-            console.log('Respuesta del servidor:', data); // Añadir log para verificar la respuesta
+            const data = await login(email, password);
             localStorage.setItem('token', data.token);
             onLogin();
         } catch (err) {
-            setError(err.message);
+            if (err.response && err.response.status === 404) {
+                setError('El servidor de autenticación no está disponible. ¿Está iniciado el backend en el puerto 3001?');
+            } else if (err.response && err.response.data && err.response.data.message) {
+                setError(err.response.data.message);
+            } else {
+                setError('Error en la autenticación');
+            }
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
         <AuthContainer>
-            <h2>Iniciar Sesión</h2>
-            {error && <p style={{ color: 'red' }}>{error}</p>}
+            <h2>Iniciar sesión</h2>
             <AuthForm onSubmit={handleSubmit}>
+                <label htmlFor="email">Email</label>
                 <AuthInput
-                    type="text"
-                    placeholder="Usuario"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={handleEmailChange}
                     required
                 />
+                <label htmlFor="password">Contraseña</label>
                 <AuthInput
+                    id="password"
                     type="password"
-                    placeholder="Contraseña"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={handlePasswordChange}
                     required
                 />
-                <AuthButton type="submit">Iniciar Sesión</AuthButton>
+                <AuthButton type="submit" disabled={loading}>{loading ? 'Entrando...' : 'Entrar'}</AuthButton>
+                {error && <p style={{ color: 'red' }}>{error}</p>}
             </AuthForm>
         </AuthContainer>
     );

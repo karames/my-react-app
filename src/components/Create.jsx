@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
+import { createRecord } from '../utils/api';
 
 const FormContainer = styled.div`
     display: flex;
@@ -38,8 +39,11 @@ const Button = styled.button`
 const Create = ({ onCreate }) => {
     const [formData, setFormData] = useState({
         title: '',
-        content: '',
+        description: '',
     });
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -48,22 +52,23 @@ const Create = ({ onCreate }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError('');
+        setSuccess('');
+        setLoading(true);
+        if (!formData.title.trim() || !formData.description.trim()) {
+            setError('Todos los campos son obligatorios');
+            setLoading(false);
+            return;
+        }
         try {
-            const response = await fetch('http://localhost:3000/records', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData),
-            });
-            if (!response.ok) {
-                throw new Error('Error en la creación del registro');
-            }
-            const data = await response.json();
-            onCreate(data);
-            setFormData({ title: '', content: '' });
+            const newRecord = await createRecord(formData);
+            if (onCreate) onCreate(newRecord);
+            setFormData({ title: '', description: '' });
+            setSuccess('Registro creado correctamente');
         } catch (error) {
-            console.error('Error:', error);
+            setError(error.message || 'Error al crear el registro');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -81,20 +86,22 @@ const Create = ({ onCreate }) => {
                 />
                 <Input
                     type="text"
-                    name="content"
-                    placeholder="Contenido"
-                    value={formData.content}
+                    name="description"
+                    placeholder="Descripción"
+                    value={formData.description}
                     onChange={handleChange}
                     required
                 />
-                <Button type="submit">Crear</Button>
+                <Button type="submit" disabled={loading}>{loading ? 'Creando...' : 'Crear'}</Button>
             </Form>
+            {error && <p style={{ color: 'red' }}>{error}</p>}
+            {success && <p style={{ color: 'green' }}>{success}</p>}
         </FormContainer>
     );
 };
 
 Create.propTypes = {
-    onCreate: PropTypes.func.isRequired,
+    onCreate: PropTypes.func,
 };
 
 export default Create;
