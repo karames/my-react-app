@@ -1,107 +1,135 @@
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
-import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 import { createRecord } from '../utils/api';
+import { FormWrapper, FormContainer, FormTitle, FormField, ButtonsContainer, Button } from './common/FormComponents';
 
-const FormContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 20px;
-`;
+const Create = () => {
+    const navigate = useNavigate();
 
-const Form = styled.form`
-    display: flex;
-    flex-direction: column;
-    width: 300px;
-`;
-
-const Input = styled.input`
-    margin: 10px 0;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-`;
-
-const Button = styled.button`
-    padding: 10px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-
-    &:hover {
-        background-color: #0056b3;
-    }
-`;
-
-const Create = ({ onCreate }) => {
+    // Estado del formulario
     const [formData, setFormData] = useState({
         title: '',
         description: '',
     });
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
+
+    // Estado para validación
+    const [fieldErrors, setFieldErrors] = useState({
+        title: '',
+        description: '',
+    });
+
+    // Estado para loading y errores generales
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
+
+        // Limpiar errores cuando el usuario escribe
+        if (fieldErrors[name]) {
+            setFieldErrors({ ...fieldErrors, [name]: '' });
+        }
+    };
+
+    const validateForm = () => {
+        const errors = {};
+
+        // Validar título
+        if (!formData.title.trim()) {
+            errors.title = 'El título es obligatorio';
+        } else if (formData.title.length < 3) {
+            errors.title = 'El título debe tener al menos 3 caracteres';
+        }
+
+        // Validar descripción
+        if (!formData.description.trim()) {
+            errors.description = 'La descripción es obligatoria';
+        } else if (formData.description.length < 10) {
+            errors.description = 'La descripción debe tener al menos 10 caracteres';
+        }
+
+        setFieldErrors(errors);
+        return Object.keys(errors).length === 0;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        setSuccess('');
+
+        // Validar formulario
+        if (!validateForm()) return;
+
+        // Crear registro
         setLoading(true);
-        if (!formData.title.trim() || !formData.description.trim()) {
-            setError('Todos los campos son obligatorios');
-            setLoading(false);
-            return;
-        }
         try {
-            const newRecord = await createRecord(formData);
-            if (onCreate) onCreate(newRecord);
-            setFormData({ title: '', description: '' });
-            setSuccess('Registro creado correctamente');
+            await createRecord(formData);
+            window.notifications.success('Registro creado correctamente');
+            navigate('/read'); // Redireccionar a la lista de registros
         } catch (error) {
             setError(error.message || 'Error al crear el registro');
+            window.notifications.error('Error al crear el registro');
         } finally {
             setLoading(false);
         }
     };
 
+    const handleCancel = () => {
+        navigate('/read');
+    };
+
     return (
-        <FormContainer>
-            <h2>Crear Registro</h2>
-            <Form onSubmit={handleSubmit}>
-                <Input
-                    type="text"
+        <FormWrapper>
+            <FormContainer onSubmit={handleSubmit} $width="500px">
+                <FormTitle>Crear Nuevo Registro</FormTitle>
+
+                <FormField
+                    label="Título"
                     name="title"
-                    placeholder="Título"
+                    type="text"
                     value={formData.title}
                     onChange={handleChange}
+                    error={fieldErrors.title}
+                    placeholder="Introduce el título del registro"
                     required
+                    autoFocus
                 />
-                <Input
-                    type="text"
+
+                <FormField
+                    label="Descripción"
                     name="description"
-                    placeholder="Descripción"
+                    type="textarea"
                     value={formData.description}
                     onChange={handleChange}
+                    error={fieldErrors.description}
+                    placeholder="Introduce una descripción detallada"
                     required
                 />
-                <Button type="submit" disabled={loading}>{loading ? 'Creando...' : 'Crear'}</Button>
-            </Form>
-            {error && <p style={{ color: 'red' }}>{error}</p>}
-            {success && <p style={{ color: 'green' }}>{success}</p>}
-        </FormContainer>
-    );
-};
 
-Create.propTypes = {
-    onCreate: PropTypes.func,
+                {error && (
+                    <p style={{ color: 'red', marginTop: '10px', fontSize: '0.9rem' }}>
+                        {error}
+                    </p>
+                )}
+
+                <ButtonsContainer>
+                    <Button
+                        type="button"
+                        $variant="secondary"
+                        onClick={handleCancel}
+                    >
+                        Cancelar
+                    </Button>
+                    <Button
+                        type="submit"
+                        disabled={loading}
+                    >
+                        {loading ? 'Creando...' : 'Crear Registro'}
+                    </Button>
+                </ButtonsContainer>
+            </FormContainer>
+        </FormWrapper>
+    );
 };
 
 export default Create;

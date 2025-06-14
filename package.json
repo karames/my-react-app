@@ -1,15 +1,47 @@
 {
     "name": "my-react-app",
     "version": "1.0.0",
+    "description": "Aplicación CRUD completa con React y Vite que incluye autenticación JWT, interfaz con styled-components, tema claro/oscuro y perfil de usuario",
+    "author": "Gonzalo Rodríguez de Dios Cabrera <gonzalo@example.com> (https://github.com/gonzalodev)",
     "private": true,
+    "keywords": [
+        "react",
+        "vite",
+        "crud",
+        "jwt",
+        "authentication",
+        "styled-components",
+        "json-server"
+    ],
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/gonzalodev/my-react-app"
+    },
+    "homepage": "https://my-react-app.demo",
+    "bugs": {
+        "url": "https://github.com/gonzalodev/my-react-app/issues",
+        "email": "bugs@example.com"
+    },
+    "engines": {
+        "node": ">=16.0.0",
+        "npm": ">=7.0.0"
+    },
     "scripts": {
         "dev": "vite",
         "build": "vite build",
         "preview": "vite preview",
-        "json-server": "npx json-server-auth --watch src/assets/db.json --port 3001"
+        "json-server": "npx json-server-auth --watch src/assets/db.json --port 3001",
+        "server": "node src/assets/server.js",
+        "start": "npm run server & npm run dev",
+        "lint": "eslint src --ext .js,.jsx",
+        "lint:fix": "eslint src --ext .js,.jsx --fix",
+        "format": "prettier --write \"src/**/*.{js,jsx}\"",
+        "clean": "rimraf dist"
     },
     "dependencies": {
         "axios": "^1.8.2",
+        "cors": "^2.8.5",
         "json-server": "^0.17.4",
         "json-server-auth": "^2.1.0",
         "prop-types": "^15.8.1",
@@ -21,7 +53,7 @@
         "styled-components": "^6.1.15"
     },
     "devDependencies": {
-        "@vitejs/plugin-react": "^1.0.0",
+        "@vitejs/plugin-react": "^4.5.2",
         "eslint": "^7.32.0",
         "eslint-config-airbnb": "^18.2.1",
         "eslint-config-prettier": "^8.3.0",
@@ -30,9 +62,7 @@
         "eslint-plugin-react": "^7.24.0",
         "eslint-plugin-react-hooks": "^4.2.0",
         "prettier": "^2.3.2",
-        "vite": "^2.0.0"
-    },
-    "keywords": [],
-    "author": "",
-    "license": "ISC"
+        "rimraf": "^5.0.5",
+        "vite": "^6.3.5"
+    }
 }

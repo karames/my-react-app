@@ -1,110 +1,157 @@
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
 import styled from 'styled-components';
-import { login } from '../utils/api';
+import { useAuth } from '../contexts/AuthContext';
+import { FormWrapper, FormContainer, FormTitle, FormField, ButtonsContainer, Button } from './common/FormComponents';
 
-const AuthContainer = styled.div`
+const AuthCard = styled(FormContainer)`
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    width: 350px;
+    margin: 40px auto;
+    padding: 30px;
+`;
+
+const AuthContainer = styled(FormWrapper)`
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100vh;
+    min-height: 80vh;
 `;
 
-const AuthForm = styled.form`
-    display: flex;
-    flex-direction: column;
-    width: 300px;
-`;
+const Auth = () => {
+    // Estado local para el formulario
+    const [formData, setFormData] = useState({
+        email: '',
+        password: '',
+    });
 
-const AuthInput = styled.input`
-    margin: 10px 0;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-`;
+    // Estado local para validación
+    const [fieldErrors, setFieldErrors] = useState({
+        email: '',
+        password: '',
+    });
 
-const AuthButton = styled.button`
-    padding: 10px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
+    // Usar el contexto de autenticación
+    const { login, loading, error: authError, setError } = useAuth();
 
-    &:hover {
-        background-color: #0056b3;
-    }
-`;
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
 
-const Auth = ({ onLogin }) => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
-
-    const handleEmailChange = (e) => {
-        setEmail(e.target.value);
+        // Limpiar errores cuando el usuario escribe
+        if (fieldErrors[name]) {
+            setFieldErrors({ ...fieldErrors, [name]: '' });
+        }
     };
-    const handlePasswordChange = (e) => {
-        setPassword(e.target.value);
+
+    const validateForm = () => {
+        const errors = {};
+
+        // Validar email
+        if (!formData.email.trim()) {
+            errors.email = 'El email es obligatorio';
+        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+            errors.email = 'El email no es válido';
+        }
+
+        // Validar contraseña
+        if (!formData.password.trim()) {
+            errors.password = 'La contraseña es obligatoria';
+        } else if (formData.password.length < 4) {
+            errors.password = 'La contraseña debe tener al menos 4 caracteres';
+        }
+
+        setFieldErrors(errors);
+        return Object.keys(errors).length === 0;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
-        setLoading(true);
-        if (!email.trim() || !password.trim()) {
-            setError('Todos los campos son obligatorios');
-            setLoading(false);
-            return;
-        }
+        setError(''); // Limpiar errores previos del contexto
+
+        // Validar formulario
+        if (!validateForm()) return;
+
+        // Intentar iniciar sesión
         try {
-            const data = await login(email, password);
-            localStorage.setItem('token', data.token);
-            onLogin();
-        } catch (err) {
-            if (err.response && err.response.status === 404) {
-                setError('El servidor de autenticación no está disponible. ¿Está iniciado el backend en el puerto 3001?');
-            } else if (err.response && err.response.data && err.response.data.message) {
-                setError(err.response.data.message);
-            } else {
-                setError('Error en la autenticación');
+            console.log("Intentando login con:", { email: formData.email, password: "***" });
+            const result = await login(formData.email, formData.password);
+
+            if (result.success) {
+                window.notifications.success('¡Bienvenido/a!');
+
+                // Si hay una ruta de redirección después del login, navegar a ella
+                if (result.redirectPath) {
+                    console.log('Redirigiendo a:', result.redirectPath);
+                    // Usando la API de History para navegar sin recargar la página
+                    window.history.pushState({}, '', result.redirectPath);
+                    // Disparar un evento para que el router de la aplicación reaccione
+                    window.dispatchEvent(new Event('popstate'));
+                }
+                // Si no hay redirección específica, la navegación por defecto se encargará
             }
-        } finally {
-            setLoading(false);
+        } catch (err) {
+            // El error ya se maneja en el contexto de autenticación
+            console.error('Error en login:', err);
+
+            // Podemos añadir notificación visual además del error en pantalla
+            window.notifications?.error('Error al iniciar sesión');
         }
     };
 
     return (
         <AuthContainer>
-            <h2>Iniciar sesión</h2>
-            <AuthForm onSubmit={handleSubmit}>
-                <label htmlFor="email">Email</label>
-                <AuthInput
-                    id="email"
+            <AuthCard onSubmit={handleSubmit}>
+                <FormTitle>Iniciar sesión</FormTitle>
+
+                <p style={{ marginBottom: '15px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                    Utiliza las siguientes credenciales de prueba: <br />
+                    Email: <strong>nuevo@test.com</strong> <br />
+                    Password: <strong>password123</strong>
+                </p>
+
+                <FormField
+                    label="Email"
+                    name="email"
                     type="email"
-                    value={email}
-                    onChange={handleEmailChange}
+                    value={formData.email}
+                    onChange={handleChange}
+                    error={fieldErrors.email}
+                    placeholder="Introduce tu email"
                     required
+                    autoFocus
                 />
-                <label htmlFor="password">Contraseña</label>
-                <AuthInput
-                    id="password"
+
+                <FormField
+                    label="Contraseña"
+                    name="password"
                     type="password"
-                    value={password}
-                    onChange={handlePasswordChange}
+                    value={formData.password}
+                    onChange={handleChange}
+                    error={fieldErrors.password}
+                    placeholder="Introduce tu contraseña"
                     required
                 />
-                <AuthButton type="submit" disabled={loading}>{loading ? 'Entrando...' : 'Entrar'}</AuthButton>
-                {error && <p style={{ color: 'red' }}>{error}</p>}
-            </AuthForm>
+
+                {authError && (
+                    <p style={{ color: 'red', marginTop: '10px', fontSize: '0.9rem' }}>
+                        {authError}
+                    </p>
+                )}
+
+                <ButtonsContainer $align="center">
+                    <Button
+                        type="submit"
+                        disabled={loading}
+                    >
+                        {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
+                    </Button>
+                </ButtonsContainer>
+            </AuthCard>
         </AuthContainer>
     );
-};
-
-Auth.propTypes = {
-    onLogin: PropTypes.func.isRequired,
 };
 
 export default Auth;

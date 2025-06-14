@@ -1,9 +1,40 @@
 {
   "users": [
     {
-      "email": "test@correo.com",
-      "password": "1234"
+      "id": 1,
+      "name": "Nuevo Usuario",
+      "email": "nuevo@test.com",
+      "password": "$2a$10$TgPr46CU7ZWMoZ.JeowS5.X43SNn/BweWR.yO7gfPXhry1vHpcGJC",
+      "preferences": {
+        "theme": "light"
+      }
     }
   ],
-  "records": []
+  "records": [
+    {
+      "id": 1,
+      "title": "Introducción a React",
+      "description": "React es una biblioteca JavaScript para construir interfaces de usuario. Es mantenido por Facebook y una comunidad de desarrolladores y empresas."
+    },
+    {
+      "id": 2,
+      "title": "Componentes Funcionales",
+      "description": "Los componentes funcionales son funciones de JavaScript que reciben props y retornan elementos de React. Son más simples y desde la introducción de Hooks pueden manejar estado."
+    },
+    {
+      "id": 3,
+      "title": "Hooks de React",
+      "description": "Los Hooks son funciones que permiten a los componentes funcionales usar características de React como el estado y el ciclo de vida. Los hooks más comunes son useState y useEffect."
+    },
+    {
+      "id": 4,
+      "title": "Styled Components",
+      "description": "Styled Components es una biblioteca para React que permite escribir CSS en JavaScript. Facilita la creación de componentes con estilos específicos y reutilizables."
+    },
+    {
+      "id": 5,
+      "title": "JSON Server",
+      "description": "JSON Server es una herramienta que permite crear rápidamente un API REST falso completo con cero codificación. Es ideal para prototipado y desarrollo frontend."
+    }
+  ]
 }

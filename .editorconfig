@@ -1,12 +1,48 @@
-# EditorConfig is awesome: https://EditorConfig.org
+# EditorConfig for My React App
+# https://EditorConfig.org
 
-# top-most EditorConfig file
+# Raíz del proyecto
 root = true
 
+###############################
+# Configuración global        #
+###############################
 [*]
-indent_style = space
-indent_size = 4
-end_of_line = lf
-charset = utf-8
-trim_trailing_whitespace = true
-insert_final_newline = true
+charset = utf-8                # Codificación UTF-8
+end_of_line = lf              # Fin de línea estilo Unix
+indent_style = space          # Usar espacios para indentar
+indent_size = 4               # 4 espacios por nivel de indentación
+insert_final_newline = true   # Añadir línea vacía al final del archivo
+trim_trailing_whitespace = true # Eliminar espacios en blanco al final
+max_line_length = 100         # Longitud máxima de línea recomendada
+
+###############################
+# Código fuente JavaScript    #
+###############################
+[*.{js,jsx,ts,tsx}]
+quote_type = single           # Usar comillas simples para strings
+
+###############################
+# Archivos de estilizado      #
+###############################
+[*.{css,scss,sass,less}]
+# Mantiene indent_size = 4 como en la configuración global
+
+###############################
+# Datos y configuración       #
+###############################
+[*.{json,json5,yml,yaml}]
+# Mantiene indent_size = 4 como en la configuración global
+
+###############################
+# Documentación y markup      #
+###############################
+[*.{md,mdx}]
+trim_trailing_whitespace = false  # Preservar espacios en blanco para Markdown
+max_line_length = off             # Sin límite de longitud para documentación
+
+###############################
+# Markup y templates          #
+###############################
+[*.{html,htm,xml,svg}]
+# Mantiene indent_size = 4 como en la configuración global

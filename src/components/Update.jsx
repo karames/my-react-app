@@ -1,112 +1,169 @@
 import React, { useEffect, useState } from 'react';
-import PropTypes from 'prop-types';
-import styled from 'styled-components';
-import { api, updateRecord } from '../utils/api';
+import { useParams, useNavigate } from 'react-router-dom';
+import { fetchRecords, updateRecord } from '../utils/api';
+import { FormWrapper, FormContainer, FormTitle, FormField, ButtonsContainer, Button } from './common/FormComponents';
 
-const UpdateContainer = styled.div`
-    padding: 20px;
-`;
+const Update = () => {
+    const { id } = useParams();
+    const navigate = useNavigate();
 
-const Form = styled.form`
-    display: flex;
-    flex-direction: column;
-`;
+    // Estado del formulario
+    const [formData, setFormData] = useState({
+        title: '',
+        description: '',
+    });
 
-const Input = styled.input`
-    margin-bottom: 10px;
-    padding: 10px;
-`;
+    // Estado para validación
+    const [fieldErrors, setFieldErrors] = useState({
+        title: '',
+        description: '',
+    });
 
-const Button = styled.button`
-    padding: 10px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    cursor: pointer;
-
-    &:hover {
-        background-color: #0056b3;
-    }
-`;
-
-const Update = ({ id, onUpdate }) => {
-    const [data, setData] = useState({ title: '', description: '' });
-    const [error, setError] = useState('');
+    // Estado para loading y errores
     const [loading, setLoading] = useState(false);
+    const [isFetching, setIsFetching] = useState(true);
+    const [error, setError] = useState('');
 
+    // Obtener datos del registro
     useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
+        const fetchRecord = async () => {
+            setIsFetching(true);
             try {
-                const response = await api.get(`/records/${id}`);
-                setData({
-                    title: response.data.title || '',
-                    description: response.data.description || ''
-                });
-            } catch (err) {
-                setError(err.message);
+                const records = await fetchRecords();
+                const record = records.find(r => r.id === parseInt(id, 10) || r.id === id);
+
+                if (record) {
+                    setFormData({
+                        title: record.title || '',
+                        description: record.description || ''
+                    });
+                } else {
+                    setError('No se encontró el registro');
+                    window.notifications.error('No se encontró el registro');
+                }
+            } catch (error) {
+                setError(`Error al cargar el registro: ${error.message}`);
+                window.notifications.error('Error al cargar el registro');
             } finally {
-                setLoading(false);
+                setIsFetching(false);
             }
         };
-        fetchData();
+
+        fetchRecord();
     }, [id]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setData({ ...data, [name]: value });
+        setFormData({ ...formData, [name]: value });
+
+        // Limpiar errores cuando el usuario escribe
+        if (fieldErrors[name]) {
+            setFieldErrors({ ...fieldErrors, [name]: '' });
+        }
+    };
+
+    const validateForm = () => {
+        const errors = {};
+
+        // Validar título
+        if (!formData.title.trim()) {
+            errors.title = 'El título es obligatorio';
+        } else if (formData.title.length < 3) {
+            errors.title = 'El título debe tener al menos 3 caracteres';
+        }
+
+        // Validar descripción
+        if (!formData.description.trim()) {
+            errors.description = 'La descripción es obligatoria';
+        } else if (formData.description.length < 10) {
+            errors.description = 'La descripción debe tener al menos 10 caracteres';
+        }
+
+        setFieldErrors(errors);
+        return Object.keys(errors).length === 0;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+
+        // Validar formulario
+        if (!validateForm()) return;
+
+        // Actualizar registro
         setLoading(true);
-        if (!data.title.trim() || !data.description.trim()) {
-            setError('Todos los campos son obligatorios');
-            setLoading(false);
-            return;
-        }
         try {
-            await updateRecord(id, data);
-            if (onUpdate) onUpdate();
-        } catch (err) {
-            setError(err.message || 'Error al actualizar');
+            await updateRecord(id, formData);
+            window.notifications.success('Registro actualizado correctamente');
+            navigate('/read');
+        } catch (error) {
+            setError(error.message || 'Error al actualizar el registro');
+            window.notifications.error('Error al actualizar el registro');
         } finally {
             setLoading(false);
         }
     };
 
-    return (
-        <UpdateContainer>
-            {error && <p style={{ color: 'red' }}>{error}</p>}
-            {loading ? <p>Cargando...</p> : (
-                <Form onSubmit={handleSubmit}>
-                    <Input
-                        type="text"
-                        name="title"
-                        value={data.title}
-                        onChange={handleChange}
-                        placeholder="Título"
-                        required
-                    />
-                    <Input
-                        type="text"
-                        name="description"
-                        value={data.description}
-                        onChange={handleChange}
-                        placeholder="Descripción"
-                        required
-                    />
-                    <Button type="submit">Actualizar</Button>
-                </Form>
-            )}
-        </UpdateContainer>
-    );
-};
+    const handleCancel = () => {
+        navigate('/read');
+    };
 
-Update.propTypes = {
-    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-    onUpdate: PropTypes.func,
+    if (isFetching) {
+        return <div>Cargando registro...</div>;
+    }
+
+    return (
+        <FormWrapper>
+            <FormContainer onSubmit={handleSubmit} $width="500px">
+                <FormTitle>Editar Registro</FormTitle>
+
+                <FormField
+                    label="Título"
+                    name="title"
+                    type="text"
+                    value={formData.title}
+                    onChange={handleChange}
+                    error={fieldErrors.title}
+                    placeholder="Introduce el título del registro"
+                    required
+                    autoFocus
+                />
+
+                <FormField
+                    label="Descripción"
+                    name="description"
+                    type="textarea"
+                    value={formData.description}
+                    onChange={handleChange}
+                    error={fieldErrors.description}
+                    placeholder="Introduce una descripción detallada"
+                    required
+                />
+
+                {error && (
+                    <p style={{ color: 'red', marginTop: '10px', fontSize: '0.9rem' }}>
+                        {error}
+                    </p>
+                )}
+
+                <ButtonsContainer>
+                    <Button
+                        type="button"
+                        $variant="secondary"
+                        onClick={handleCancel}
+                    >
+                        Cancelar
+                    </Button>
+                    <Button
+                        type="submit"
+                        disabled={loading}
+                    >
+                        {loading ? 'Actualizando...' : 'Actualizar Registro'}
+                    </Button>
+                </ButtonsContainer>
+            </FormContainer>
+        </FormWrapper>
+    );
 };
 
 export default Update;
